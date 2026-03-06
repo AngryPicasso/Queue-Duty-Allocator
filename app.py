@@ -1,18 +1,37 @@
 import streamlit as st
 import random
 
-st.title("Queue Duty Allocator")
+st.title("Duty Allocation Tool")
 
-queues = [
-    "AKS&BM",
-    "VM",
-    "Integration",
-    "Apps",
-    "Dev",
-    "Networking",
-    "AME",
-    "ASMS"
-]
+# -------- Queue Groups --------
+
+core_queues = ["AKS&BM", "VM", "Networking"]
+das_queues = ["Apps", "Dev", "Integration", "AME"]
+asms_queue = ["ASMS"]
+
+queues = core_queues + das_queues + asms_queue
+
+# -------- Display Queue Structure --------
+
+st.subheader("Queue Structure")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("### Core")
+    for q in core_queues:
+        st.write(q)
+
+with col2:
+    st.markdown("### DAS")
+    for q in das_queues:
+        st.write(q)
+
+with col3:
+    st.markdown("### ASMS")
+    st.write("ASMS")
+
+# -------- Queue Requirements --------
 
 queue_need = {
     "AKS&BM":1,
@@ -24,6 +43,8 @@ queue_need = {
     "AME":1,
     "ASMS":2
 }
+
+# -------- People --------
 
 people = {
 "Varun":["AKS&BM","VM","Integration","Dev","AME","ASMS"],
@@ -38,12 +59,11 @@ people = {
 "Christina":["AKS&BM","VM","Networking","Dev","Apps","Integration"]
 }
 
-leave_input = st.text_input("Enter names on leave separated by comma")
+leave_input = st.text_input("Enter names on leave (comma separated)")
 
 if st.button("Generate Duty Allocation"):
 
     leave = [x.strip() for x in leave_input.split(",") if x.strip()]
-
     available = {p:q for p,q in people.items() if p not in leave}
 
     assignments = {q:[] for q in queues}
@@ -54,7 +74,8 @@ if st.button("Generate Duty Allocation"):
 
     MAX_DUTY = 2
 
-    # ASMS
+    # -------- ASMS --------
+
     asms_candidates = [p for p in people_list if "ASMS" in available[p]]
     random.shuffle(asms_candidates)
 
@@ -65,7 +86,8 @@ if st.button("Generate Duty Allocation"):
             assignments["ASMS"].append(p)
             person_duty[p].append("ASMS")
 
-    # Networking
+    # -------- Networking --------
+
     net_candidates = [
         p for p in people_list
         if "Networking" in available[p]
@@ -81,7 +103,8 @@ if st.button("Generate Duty Allocation"):
             person_duty[p].append("Networking")
             break
 
-    # Remaining queues
+    # -------- Remaining Queues --------
+
     for queue in queues:
 
         if queue in ["ASMS","Networking"]:
@@ -112,10 +135,20 @@ if st.button("Generate Duty Allocation"):
             assignments[queue].append(chosen)
             person_duty[chosen].append(queue)
 
+    # -------- Display Results --------
+
     st.subheader("Duty Allocation")
 
-    for q in queues:
+    st.markdown("### Core")
+    for q in core_queues:
         st.write(f"{q}: {', '.join(assignments[q])}")
+
+    st.markdown("### DAS")
+    for q in das_queues:
+        st.write(f"{q}: {', '.join(assignments[q])}")
+
+    st.markdown("### ASMS")
+    st.write(f"ASMS: {', '.join(assignments['ASMS'])}")
 
     extras = [p for p in person_duty if len(person_duty[p]) == 0]
 
