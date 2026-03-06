@@ -1,4 +1,7 @@
+import streamlit as st
 import random
+
+st.title("Queue Duty Allocator")
 
 queues = [
     "AKS&BM",
@@ -35,99 +38,86 @@ people = {
 "Christina":["AKS&BM","VM","Networking","Dev","Apps","Integration"]
 }
 
-leave_input = input("Enter names on leave separated by comma: ")
-leave = [x.strip() for x in leave_input.split(",") if x.strip()]
+leave_input = st.text_input("Enter names on leave separated by comma")
 
-available = {p:q for p,q in people.items() if p not in leave}
+if st.button("Generate Duty Allocation"):
 
-assignments = {q:[] for q in queues}
-person_duty = {p:[] for p in available}
+    leave = [x.strip() for x in leave_input.split(",") if x.strip()]
 
-people_list = list(available.keys())
-random.shuffle(people_list)
+    available = {p:q for p,q in people.items() if p not in leave}
 
-MAX_DUTY = 2
+    assignments = {q:[] for q in queues}
+    person_duty = {p:[] for p in available}
 
-# -------- ASMS first --------
+    people_list = list(available.keys())
+    random.shuffle(people_list)
 
-asms_candidates = [p for p in people_list if "ASMS" in available[p]]
-random.shuffle(asms_candidates)
+    MAX_DUTY = 2
 
-for p in asms_candidates:
+    # ASMS
+    asms_candidates = [p for p in people_list if "ASMS" in available[p]]
+    random.shuffle(asms_candidates)
 
-    if len(assignments["ASMS"]) == 2:
-        break
+    for p in asms_candidates:
+        if len(assignments["ASMS"]) == 2:
+            break
+        if len(person_duty[p]) < MAX_DUTY:
+            assignments["ASMS"].append(p)
+            person_duty[p].append("ASMS")
 
-    if len(person_duty[p]) < MAX_DUTY:
-        assignments["ASMS"].append(p)
-        person_duty[p].append("ASMS")
+    # Networking
+    net_candidates = [
+        p for p in people_list
+        if "Networking" in available[p]
+        and len(person_duty[p]) == 0
+    ]
 
-# -------- Networking --------
+    if not net_candidates:
+        net_candidates = [p for p in people_list if "Networking" in available[p]]
 
-net_candidates = [
-p for p in people_list
-if "Networking" in available[p]
-and len(person_duty[p]) == 0
-]
-
-if not net_candidates:
-    net_candidates = [p for p in people_list if "Networking" in available[p]]
-
-for p in net_candidates:
-
-    if len(person_duty[p]) < MAX_DUTY:
-        assignments["Networking"].append(p)
-        person_duty[p].append("Networking")
-        break
-
-# -------- Remaining queues --------
-
-for queue in queues:
-
-    if queue in ["ASMS","Networking"]:
-        continue
-
-    candidates = [p for p in people_list if queue in available[p]]
-    random.shuffle(candidates)
-
-    chosen = None
-
-    # Prefer unused people
-    for p in candidates:
-
-        if len(person_duty[p]) == 0:
-            chosen = p
+    for p in net_candidates:
+        if len(person_duty[p]) < MAX_DUTY:
+            assignments["Networking"].append(p)
+            person_duty[p].append("Networking")
             break
 
-    # allow double duty if needed
-    if chosen is None:
+    # Remaining queues
+    for queue in queues:
+
+        if queue in ["ASMS","Networking"]:
+            continue
+
+        candidates = [p for p in people_list if queue in available[p]]
+        random.shuffle(candidates)
+
+        chosen = None
 
         for p in candidates:
+            if len(person_duty[p]) == 0:
+                chosen = p
+                break
 
-            if len(person_duty[p]) >= MAX_DUTY:
-                continue
+        if chosen is None:
+            for p in candidates:
+                if len(person_duty[p]) >= MAX_DUTY:
+                    continue
+                if "ASMS" in person_duty[p]:
+                    continue
+                if "Networking" in person_duty[p]:
+                    continue
+                chosen = p
+                break
 
-            if "ASMS" in person_duty[p]:
-                continue
+        if chosen:
+            assignments[queue].append(chosen)
+            person_duty[chosen].append(queue)
 
-            if "Networking" in person_duty[p]:
-                continue
+    st.subheader("Duty Allocation")
 
-            chosen = p
-            break
+    for q in queues:
+        st.write(f"{q}: {', '.join(assignments[q])}")
 
-    if chosen:
-        assignments[queue].append(chosen)
-        person_duty[chosen].append(queue)
+    extras = [p for p in person_duty if len(person_duty[p]) == 0]
 
-# -------- Output --------
-
-print("\nDuty Allocation:\n")
-
-for q in queues:
-    print(f"{q}: {', '.join(assignments[q])}")
-
-extras = [p for p in person_duty if len(person_duty[p]) == 0]
-
-if extras:
-    print("\nExtra People:", ", ".join(extras))
+    if extras:
+        st.write("Extra People:", ", ".join(extras))
