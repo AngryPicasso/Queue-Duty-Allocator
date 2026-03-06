@@ -26,30 +26,10 @@ people = {
 "Christina":["AKS&BM","VM","Networking","Dev","Apps","Integration"]
 }
 
-# -------- User Controls --------
+# -------- User Input --------
 
 leave_input = st.text_input("Enter names on leave (comma separated)")
 generate = st.button("Generate Duty Allocation")
-
-# -------- Queue Structure (shown before generation) --------
-
-st.subheader("Queue Structure")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("### Core")
-    for q in core_queues:
-        st.write(q)
-
-with col2:
-    st.markdown("### DAS")
-    for q in das_queues:
-        st.write(q)
-
-with col3:
-    st.markdown("### ASMS")
-    st.write("ASMS")
 
 # -------- Generate Duties --------
 
