@@ -11,7 +11,27 @@ asms_queue = ["ASMS"]
 
 queues = core_queues + das_queues + asms_queue
 
-# -------- Display Queue Structure --------
+# -------- People --------
+
+people = {
+"Varun":["AKS&BM","VM","Integration","Dev","AME","ASMS"],
+"Afnas":["AKS&BM","VM","Integration","Apps","AME","ASMS"],
+"Ravi":["AKS&BM","Networking","VM","Apps","Dev","AME","ASMS"],
+"Madhu":["ASMS"],
+"Shaikh":["Networking","Apps","Dev"],
+"Yash":["Networking","AKS&BM","VM","Integration","Dev","Apps"],
+"Lovely":["Networking","AKS&BM","ASMS","Dev","Apps"],
+"Noor":["Integration","Networking","VM","AKS&BM","Apps","Dev"],
+"Aishwary":["AKS&BM","VM","Apps","Dev","AME","Integration"],
+"Christina":["AKS&BM","VM","Networking","Dev","Apps","Integration"]
+}
+
+# -------- User Controls --------
+
+leave_input = st.text_input("Enter names on leave (comma separated)")
+generate = st.button("Generate Duty Allocation")
+
+# -------- Queue Structure (shown before generation) --------
 
 st.subheader("Queue Structure")
 
@@ -31,37 +51,9 @@ with col3:
     st.markdown("### ASMS")
     st.write("ASMS")
 
-# -------- Queue Requirements --------
+# -------- Generate Duties --------
 
-queue_need = {
-    "AKS&BM":1,
-    "VM":1,
-    "Integration":1,
-    "Apps":1,
-    "Dev":1,
-    "Networking":1,
-    "AME":1,
-    "ASMS":2
-}
-
-# -------- People --------
-
-people = {
-"Varun":["AKS&BM","VM","Integration","Dev","AME","ASMS"],
-"Afnas":["AKS&BM","VM","Integration","Apps","AME","ASMS"],
-"Ravi":["AKS&BM","Networking","VM","Apps","Dev","AME","ASMS"],
-"Madhu":["ASMS"],
-"Shaikh":["Networking","Apps","Dev"],
-"Yash":["Networking","AKS&BM","VM","Integration","Dev","Apps"],
-"Lovely":["Networking","AKS&BM","ASMS","Dev","Apps"],
-"Noor":["Integration","Networking","VM","AKS&BM","Apps","Dev"],
-"Aishwary":["AKS&BM","VM","Apps","Dev","AME","Integration"],
-"Christina":["AKS&BM","VM","Networking","Dev","Apps","Integration"]
-}
-
-leave_input = st.text_input("Enter names on leave (comma separated)")
-
-if st.button("Generate Duty Allocation"):
+if generate:
 
     leave = [x.strip() for x in leave_input.split(",") if x.strip()]
     available = {p:q for p,q in people.items() if p not in leave}
